@@ -1,31 +1,11 @@
-package br.com.sprint.sprint.model;
+package br.com.sprint.sprint.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "user")
-public class User {
-    @Id @GeneratedValue
-    private Long id;
-
+public class UserRequestCreate {
     private String name;
-
     private String email;
-
     private String password;
 
-    //Getters e Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }  
-
+    // Getters e Setters
     public String getName() {
         return name;
     }

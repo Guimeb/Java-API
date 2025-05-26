@@ -1,23 +1,12 @@
-package br.com.sprint.sprint.model;
+package br.com.sprint.sprint.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "user")
-public class User {
-    @Id @GeneratedValue
+public class UserRequestUpdate {
     private Long id;
-
     private String name;
-
     private String email;
-
     private String password;
 
-    //Getters e Setters
+    // Getters e Setters
     public Long getId() {
         return id;
     }
