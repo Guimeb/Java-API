@@ -2,6 +2,7 @@ package br.com.sprint.sprint.service.impl;
 
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,11 +21,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository repo;
     private final WalletService walletService;
+    private final PasswordEncoder passwordEncoder;
 
     public UserServiceImpl(UserRepository repo,
-                           WalletService walletService) {
+                           WalletService walletService,
+                           PasswordEncoder passwordEncoder) {
         this.repo = repo;
         this.walletService = walletService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -32,7 +36,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         User saved = repo.save(user);
 
         walletService.createWalletForUser(saved.getId());
@@ -46,7 +50,7 @@ public class UserServiceImpl implements UserService {
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.getId()));
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         return repo.save(user);
     }
 
