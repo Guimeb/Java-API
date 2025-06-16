@@ -15,9 +15,11 @@ public class AssetRequestUpdate {
     @NotBlank
     private String name;
 
-    @NotNull @DecimalMin("0.0")
+    @NotNull
+    @DecimalMin("0.0")
     private BigDecimal currentValue;
 
+    // getters e setters
     public Long getId() {
         return id;
     }

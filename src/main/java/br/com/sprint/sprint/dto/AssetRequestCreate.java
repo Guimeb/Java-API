@@ -15,27 +15,27 @@ public class AssetRequestCreate {
     @NotNull @DecimalMin("0.0")
     private BigDecimal currentValue;
 
+    // getters e setters
     public String getSymbol() {
         return symbol;
     }
 
-    public void setSymbol(String symbol) {
-        this.symbol = symbol;
+    public void setSymbol(String symbol) { 
+        this.symbol = symbol; 
     }
 
-    public String getName() {
-        return name;
+    public String getName() { 
+        return name; 
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setName(String name) { 
+        this.name = name; 
     }
 
-    public BigDecimal getCurrentValue() {
-        return currentValue;
+    public BigDecimal getCurrentValue() { 
+        return currentValue; 
     }
-
-    public void setCurrentValue(BigDecimal currentValue) {
-        this.currentValue = currentValue;
+    public void setCurrentValue(BigDecimal currentValue) { 
+        this.currentValue = currentValue; 
     }
 }
