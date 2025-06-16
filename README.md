@@ -208,3 +208,76 @@ Senha: password
 - Fator de custo padrão: 10 (configurável em `BCryptPasswordEncoder(strength)`).
 - Tokens JWT assinados com chaves RSA.
 - Rota `/auth/login` é pública; demais endpoints REST requerem autenticação JWT.
+
+## Diagrama de Classes
+
+```mermaid
+classDiagram
+    User "1" -- "1" Wallet : owns
+    Wallet "1" o-- "*" WalletAsset : contains
+    Asset "1" o-- "*" WalletAsset : referenced by
+    User : +Long id
+    User : +String username
+    User : +String email
+    User : +String password
+    Wallet : +Long id
+    Wallet : +User user
+    WalletAsset : +Long id
+    WalletAsset : +BigDecimal quantity
+    WalletAsset : +BigDecimal purchasePrice
+    WalletAsset : +LocalDateTime purchaseDate
+    Asset : +Long id
+    Asset : +String symbol
+    Asset : +String name
+    Asset : +BigDecimal currentValue
+```
+
+## Fluxograma
+
+```mermaid
+flowchart TD
+    %% --------- CLIENT ----------
+    U[User] --> Client[REST Client]
+
+    %% --------- API ENTRY ----------
+    Client --> API["Spring Boot API"]
+
+    %% --------- SECURITY ----------
+    API --> JWTSec[JWT Security Filter]
+
+    %% --------- CONTROLLERS ----------
+    JWTSec --> Controllers
+    subgraph Controllers
+        AuthC[AuthenticationController]
+        UserC[UserController]
+        AssetC[AssetController]
+        WalletC[WalletController]
+        WAController[WalletAssetController]
+    end
+
+    %% --------- SERVICES ----------
+    Controllers --> Services
+    subgraph Services
+        AuthS[AuthService]
+        UserS[UserService]
+        AssetS[AssetService]
+        WalletS[WalletService]
+        WASvc[WalletAssetService]
+    end
+
+    %% --------- REPOSITORIES ----------
+    Services --> Repos
+    subgraph Repos
+        UserRepo[UserRepository]
+        AssetRepo[AssetRepository]
+        WalletRepo[WalletRepository]
+        WalletAssetRepo[WalletAssetRepository]
+    end
+
+    %% --------- DATABASE ----------
+    Repos --> DB[(Database)]
+
+    %% --------- RESPONSE ----------
+    DB --> Response[Repository returns data]
+    Response --> Client
+```
