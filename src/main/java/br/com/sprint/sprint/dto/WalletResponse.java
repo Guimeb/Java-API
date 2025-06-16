@@ -8,6 +8,12 @@ public class WalletResponse {
         this.id = id;
         this.userId = userId;
     }
-    public Long getId() { return id; }
-    public Long getUserId() { return userId; }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
 }

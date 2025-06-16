@@ -24,9 +24,8 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public Wallet createWalletForUser(Long userId) {
         User user = userRepo.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + userId));
 
-        // opcionalmente verificar se já existe
         if (walletRepo.findByUser(user).isPresent()) {
             throw new IllegalStateException("Wallet já existe para o usuário: " + userId);
         }
@@ -40,9 +39,9 @@ public class WalletServiceImpl implements WalletService {
     @Transactional(readOnly = true)
     public Wallet getWalletByUser(Long userId) {
         User user = userRepo.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + userId));
 
         return walletRepo.findByUser(user)
-            .orElseThrow(() -> new ResourceNotFoundException("Wallet não encontrada para o usuário: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet não encontrada para o usuário: " + userId));
     }
 }

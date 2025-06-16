@@ -35,7 +35,7 @@ public class AssetServiceImpl implements AssetService {
     @Override
     public Asset update(AssetRequestUpdate dto) {
         Asset asset = repo.findById(dto.getId())
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + dto.getId()));
         asset.setSymbol(dto.getSymbol());
         asset.setName(dto.getName());
         asset.setCurrentValue(dto.getCurrentValue());
@@ -45,7 +45,7 @@ public class AssetServiceImpl implements AssetService {
     @Override
     public void delete(Long id) {
         Asset asset = repo.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
         repo.delete(asset);
     }
 
@@ -53,7 +53,7 @@ public class AssetServiceImpl implements AssetService {
     @Transactional(readOnly = true)
     public Asset findById(Long id) {
         return repo.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
     }
 
     @Override

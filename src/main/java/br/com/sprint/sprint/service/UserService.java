@@ -9,8 +9,12 @@ import br.com.sprint.sprint.model.User;
 
 public interface UserService {
     User create(UserRequestCreate dto);
+
     User update(UserRequestUpdate dto);
+
     void delete(UserResquestDelete dto);
+
     User findById(Long id);
+
     List<User> findAll();
 }

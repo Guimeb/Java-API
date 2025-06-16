@@ -24,8 +24,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserServiceImpl(UserRepository repo,
-                           WalletService walletService,
-                           PasswordEncoder passwordEncoder) {
+            WalletService walletService,
+            PasswordEncoder passwordEncoder) {
         this.repo = repo;
         this.walletService = walletService;
         this.passwordEncoder = passwordEncoder;
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User update(UserRequestUpdate dto) {
         User user = repo.findById(dto.getId())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.getId()));
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(UserResquestDelete dto) {
         User user = repo.findById(dto.getId())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.getId()));
         repo.delete(user);
     }
 
@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public User findById(Long id) {
         return repo.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
     }
 
     @Override

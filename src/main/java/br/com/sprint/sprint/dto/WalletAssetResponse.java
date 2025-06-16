@@ -12,8 +12,8 @@ public class WalletAssetResponse {
     private LocalDateTime purchaseDate;
 
     public WalletAssetResponse(Long id, Long walletId, Long assetId,
-                               BigDecimal quantity, BigDecimal purchasePrice,
-                               LocalDateTime purchaseDate) {
+            BigDecimal quantity, BigDecimal purchasePrice,
+            LocalDateTime purchaseDate) {
         this.id = id;
         this.walletId = walletId;
         this.assetId = assetId;
@@ -27,18 +27,23 @@ public class WalletAssetResponse {
     public Long getId() {
         return id;
     }
+
     public Long getWalletId() {
         return walletId;
     }
+
     public Long getAssetId() {
         return assetId;
     }
+
     public BigDecimal getQuantity() {
         return quantity;
     }
+
     public BigDecimal getPurchasePrice() {
         return purchasePrice;
     }
+
     public LocalDateTime getPurchaseDate() {
         return purchaseDate;
     }

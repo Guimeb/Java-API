@@ -24,10 +24,9 @@ public class WalletAssetServiceImpl implements WalletAssetService {
     private final AssetRepository assetRepo;
 
     public WalletAssetServiceImpl(
-        WalletAssetRepository waRepo,
-        WalletRepository walletRepo,
-        AssetRepository assetRepo
-    ) {
+            WalletAssetRepository waRepo,
+            WalletRepository walletRepo,
+            AssetRepository assetRepo) {
         this.waRepo = waRepo;
         this.walletRepo = walletRepo;
         this.assetRepo = assetRepo;
@@ -35,15 +34,14 @@ public class WalletAssetServiceImpl implements WalletAssetService {
 
     @Override
     public WalletAsset addToWallet(
-        Long walletId,
-        Long assetId,
-        BigDecimal quantity,
-        BigDecimal purchasePrice
-    ) {
+            Long walletId,
+            Long assetId,
+            BigDecimal quantity,
+            BigDecimal purchasePrice) {
         Wallet wallet = walletRepo.findById(walletId)
-            .orElseThrow(() -> new ResourceNotFoundException("Wallet não encontrada: " + walletId));
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet não encontrada: " + walletId));
         Asset asset = assetRepo.findById(assetId)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset não encontrado: " + assetId));
+                .orElseThrow(() -> new ResourceNotFoundException("Asset não encontrado: " + assetId));
         WalletAsset wa = new WalletAsset();
         wa.setWallet(wallet);
         wa.setAsset(asset);
@@ -60,14 +58,13 @@ public class WalletAssetServiceImpl implements WalletAssetService {
 
     @Override
     public WalletAsset updateInWallet(
-        Long walletId,
-        Long walletAssetId,
-        BigDecimal quantity,
-        BigDecimal purchasePrice
-    ) {
+            Long walletId,
+            Long walletAssetId,
+            BigDecimal quantity,
+            BigDecimal purchasePrice) {
         WalletAsset wa = waRepo.findByIdAndWalletId(walletAssetId, walletId)
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "WalletAsset não encontrado: " + walletAssetId + " na carteira " + walletId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "WalletAsset não encontrado: " + walletAssetId + " na carteira " + walletId));
         wa.setQuantity(quantity);
         wa.setPurchasePrice(purchasePrice);
         return waRepo.save(wa);
@@ -76,8 +73,8 @@ public class WalletAssetServiceImpl implements WalletAssetService {
     @Override
     public void removeFromWallet(Long walletId, Long walletAssetId) {
         WalletAsset wa = waRepo.findByIdAndWalletId(walletAssetId, walletId)
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "WalletAsset não encontrado: " + walletAssetId + " na carteira " + walletId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "WalletAsset não encontrado: " + walletAssetId + " na carteira " + walletId));
         waRepo.delete(wa);
     }
 }

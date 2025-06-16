@@ -8,10 +8,12 @@ public class WalletAssetRequestCreate {
     @NotNull
     private Long assetId;
 
-    @NotNull @DecimalMin("0.0001")
+    @NotNull
+    @DecimalMin("0.0001")
     private BigDecimal quantity;
 
-    @NotNull @DecimalMin("0.0")
+    @NotNull
+    @DecimalMin("0.0")
     private BigDecimal purchasePrice;
 
     // Getters e Setters
@@ -19,6 +21,7 @@ public class WalletAssetRequestCreate {
     public Long getAssetId() {
         return assetId;
     }
+
     public void setAssetId(Long assetId) {
         this.assetId = assetId;
     }
@@ -26,6 +29,7 @@ public class WalletAssetRequestCreate {
     public BigDecimal getQuantity() {
         return quantity;
     }
+
     public void setQuantity(BigDecimal quantity) {
         this.quantity = quantity;
     }
@@ -33,6 +37,7 @@ public class WalletAssetRequestCreate {
     public BigDecimal getPurchasePrice() {
         return purchasePrice;
     }
+
     public void setPurchasePrice(BigDecimal purchasePrice) {
         this.purchasePrice = purchasePrice;
     }

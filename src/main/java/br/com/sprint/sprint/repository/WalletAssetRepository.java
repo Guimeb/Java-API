@@ -10,5 +10,6 @@ import br.com.sprint.sprint.model.WalletAsset;
 @Repository
 public interface WalletAssetRepository extends JpaRepository<WalletAsset, Long> {
     List<WalletAsset> findByWalletId(Long walletId);
+
     Optional<WalletAsset> findByIdAndWalletId(Long id, Long walletId);
 }

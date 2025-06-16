@@ -28,10 +28,7 @@ public class Wallet {
     @JsonBackReference
     private User user;
 
-    @OneToMany(mappedBy = "wallet",
-               cascade = CascadeType.REMOVE,
-               orphanRemoval = true,
-               fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<WalletAsset> assets;
 
@@ -40,23 +37,23 @@ public class Wallet {
     public Long getId() {
         return id;
     }
- 
+
     public void setId(Long id) {
         this.id = id;
     }
- 
+
     public User getUser() {
         return user;
     }
- 
+
     public void setUser(User user) {
         this.user = user;
     }
- 
+
     public List<WalletAsset> getAssets() {
         return assets;
     }
- 
+
     public void setAssets(List<WalletAsset> assets) {
         this.assets = assets;
     }
