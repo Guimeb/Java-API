@@ -1,33 +1,27 @@
-# Sprint Wallet API
+# Sprint 1 - Webservice API
 
 Este projeto é uma API RESTful desenvolvida em Java com Spring Boot para gerenciamento de usuários, ativos (assets) e carteiras (wallets), incluindo funcionalidades de autenticação JWT e operações de adicionar, atualizar e remover ativos de carteiras.
 
-## Índice
+**Nomes + RM dos integrantes:**
+- Fabrício Saavedra - 97631
+- Guilherme Akio - 98582
+- Guilherme Morais - 551981
+- Lorenzo Ferreira  - 97318
+- Açussena Macedo Mautone - 552568
 
-- [Tecnologias](#tecnologias)
-- [Pré-requisitos](#pré-requisitos)
-- [Configuração](#configuração)
-- [Executando a aplicação](#executando-a-aplicação)
-- [Endpoints](#endpoints)
-  - [Autenticação](#autenticação)
-  - [Usuários (User)](#usuários-user)
-  - [Ativos (Asset)](#ativos-asset)
-  - [Carteiras (Wallet)](#carteiras-wallet)
-  - [Ativos na Carteira (WalletAsset)](#ativos-na-carteira-walletasset)
-  - [Rotas Privadas (Private)](#rotas-privadas-private)
-- [Validação e Respostas](#validação-e-respostas)
-- [Segurança](#segurança)
-- [Contato](#contato)
+**Turma:** 3ESPW
+
+**Ano:** 2025
 
 ## Tecnologias
 
 - Java 21
-- Spring Boot 3
+- Spring Boot
 - Spring Data JPA
 - Hibernate
 - H2 Database (para desenvolvimento/testes)
 - Spring Security com JWT
-- 
+- BCrypt Password Encoder
 - Maven
 
 ## Pré-requisitos
@@ -40,21 +34,19 @@ Este projeto é uma API RESTful desenvolvida em Java com Spring Boot para gerenc
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/seu-usuario/sprint-wallet-api.git
+   git clone https://github.com/Guimeb/Java-API
    ```
 2. Ajuste as propriedades de `src/main/resources/application.properties` ou `application.yml`:
    ```properties
    spring.datasource.url=jdbc:h2:mem:testdb
-   spring.datasource.username=sa
+   spring.datasource.driver-class-name=org.h2.Driver
+   spring.datasource.username=galo
    spring.datasource.password=
-   spring.jpa.hibernate.ddl-auto=update
 
    # JWT
    jwt.public-key-location=classpath:app.pub
-   jwt.private-key-location=classpath:app.pem
-   jwt.expiration=3600
+   jwt.private-key-location=classpath:app.key
    ```
-3. Coloque suas chaves RSA em `src/main/resources/app.pub` e `app.pem`.
 
 ## Executando a aplicação
 
@@ -64,17 +56,21 @@ mvn clean spring-boot:run
 
 Acesse `http://localhost:8080/swagger-ui.html` para a documentação interativa.
 
-## Endpoints
+Conta para autenticação
+Usuario: galo
+Senha: password
+
+## Endpoints exemplos
 
 ### Autenticação
 
-- **POST** `/auth/login`
+- **POST** `/authenticate`
   - **Descrição:** Autentica usuário e retorna token JWT.
   - **Request Body:**
     ```json
     {
-      "username": "alice",
-      "password": "SenhaForte123!"
+      "username": "galo",
+      "password": "password"
     }
     ```
   - **Response:**
@@ -122,13 +118,9 @@ Acesse `http://localhost:8080/swagger-ui.html` para a documentação interativa.
     }
     ```
 
-- **DELETE** `/users`
+- **DELETE** `/users/{id}`
 
   - **Descrição:** Remove usuário.
-  - **Body:**
-    ```json
-    { "id": 1 }
-    ```
 
 ### Ativos (Asset)
 
@@ -167,7 +159,7 @@ Acesse `http://localhost:8080/swagger-ui.html` para a documentação interativa.
 
 ### Ativos na Carteira (WalletAsset)
 
-- **POST** `/wallets/{walletId}/assets`
+- **POST** `/wallets/{userId}/assets`
 
   - **Descrição:** Adiciona ativo à carteira.
   - **Body:**
@@ -200,8 +192,8 @@ Acesse `http://localhost:8080/swagger-ui.html` para a documentação interativa.
 
 ### Rotas Privadas (Private)
 
-- **GET** `/private/hello`
-  - **Descrição:** Exemplo de rota protegida que retorna "Hello, {username}!".
+- **GET** `/private`
+  - **Descrição:** Exemplo de rota protegida que retorna "Hello from private API controller".
   - **Autorização:** Bearer Token no header `Authorization: Bearer <token>`.
 
 ## Validação e Respostas
@@ -216,8 +208,3 @@ Acesse `http://localhost:8080/swagger-ui.html` para a documentação interativa.
 - Fator de custo padrão: 10 (configurável em `BCryptPasswordEncoder(strength)`).
 - Tokens JWT assinados com chaves RSA.
 - Rota `/auth/login` é pública; demais endpoints REST requerem autenticação JWT.
-
-## Contato
-
-Para dúvidas ou contribuições, abra uma issue ou PR no repositório.
-
