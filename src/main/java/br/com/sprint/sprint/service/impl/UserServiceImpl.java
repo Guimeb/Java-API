@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User create(UserRequestCreate dto) {
         User user = new User();
-        user.setName(dto.getName());
+        user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
         User saved = repo.save(user);
@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
     public User update(UserRequestUpdate dto) {
         User user = repo.findById(dto.getId())
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.getId()));
-        user.setName(dto.getName());
+        user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
         return repo.save(user);

@@ -28,8 +28,8 @@ public class AssetController {
     @GetMapping
     public List<AssetResponse> listAll() {
         return service.findAll().stream()
-            .map(a -> new AssetResponse(a.getId(), a.getSymbol(), a.getName(), a.getCurrentValue()))
-            .collect(Collectors.toList());
+                .map(a -> new AssetResponse(a.getId(), a.getSymbol(), a.getName(), a.getCurrentValue()))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")

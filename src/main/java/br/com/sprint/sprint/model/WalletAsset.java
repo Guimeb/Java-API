@@ -4,34 +4,39 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "wallet_assets")
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class WalletAsset {
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Relação ManyToOne para Wallet
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id", nullable = false)
+    @JsonBackReference
     private Wallet wallet;
 
+    // <<< Foi adicionado: campo asset >>>
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "asset_id", nullable = false)
     private Asset asset;
 
-    @Column(nullable = false)
     private BigDecimal quantity;
-
-    @Column(nullable = false)
     private BigDecimal purchasePrice;
-
-    @Column(nullable = false)
     private LocalDateTime purchaseDate = LocalDateTime.now();
 
-    // Getters e Setters
+    // Getters & Setters
+
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -39,6 +44,7 @@ public class WalletAsset {
     public Wallet getWallet() {
         return wallet;
     }
+
     public void setWallet(Wallet wallet) {
         this.wallet = wallet;
     }
@@ -46,6 +52,7 @@ public class WalletAsset {
     public Asset getAsset() {
         return asset;
     }
+
     public void setAsset(Asset asset) {
         this.asset = asset;
     }
@@ -53,6 +60,7 @@ public class WalletAsset {
     public BigDecimal getQuantity() {
         return quantity;
     }
+
     public void setQuantity(BigDecimal quantity) {
         this.quantity = quantity;
     }
@@ -60,6 +68,7 @@ public class WalletAsset {
     public BigDecimal getPurchasePrice() {
         return purchasePrice;
     }
+
     public void setPurchasePrice(BigDecimal purchasePrice) {
         this.purchasePrice = purchasePrice;
     }
@@ -67,6 +76,7 @@ public class WalletAsset {
     public LocalDateTime getPurchaseDate() {
         return purchaseDate;
     }
+
     public void setPurchaseDate(LocalDateTime purchaseDate) {
         this.purchaseDate = purchaseDate;
     }

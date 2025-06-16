@@ -6,8 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
-import br.com.sprint.sprint.dto.WalletAssetRequestCreate;
-import br.com.sprint.sprint.dto.WalletAssetResponse;
+import br.com.sprint.sprint.dto.*;
 import br.com.sprint.sprint.model.WalletAsset;
 import br.com.sprint.sprint.service.WalletAssetService;
 
@@ -54,5 +53,35 @@ public class WalletAssetController {
                 wa.getPurchaseDate()
             ))
             .collect(Collectors.toList());
+    }
+
+    @PutMapping("/{walletAssetId}")
+    public WalletAssetResponse update(
+        @PathVariable Long walletId,
+        @PathVariable Long walletAssetId,
+        @Valid @RequestBody WalletAssetRequestUpdate dto
+    ) {
+        WalletAsset wa = service.updateInWallet(
+            walletId,
+            walletAssetId,
+            dto.getQuantity(),
+            dto.getPurchasePrice()
+        );
+        return new WalletAssetResponse(
+            wa.getId(),
+            wa.getWallet().getId(),
+            wa.getAsset().getId(),
+            wa.getQuantity(),
+            wa.getPurchasePrice(),
+            wa.getPurchaseDate()
+        );
+    }
+
+    @DeleteMapping("/{walletAssetId}")
+    public void remove(
+        @PathVariable Long walletId,
+        @PathVariable Long walletAssetId
+    ) {
+        service.removeFromWallet(walletId, walletAssetId);
     }
 }
