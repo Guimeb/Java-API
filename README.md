@@ -54,7 +54,7 @@ Este projeto é uma API RESTful desenvolvida em Java com Spring Boot para gerenc
 mvn clean spring-boot:run
 ```
 
-Acesse `http://localhost:8080/swagger-ui.html` para a documentação interativa.
+Acesse `http://localhost:8080/swagger-ui/index.html#/` para a documentação interativa.
 
 Conta para autenticação
 Usuario: galo
