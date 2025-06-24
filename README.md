@@ -56,8 +56,8 @@ mvn clean spring-boot:run
 
 Acesse `http://localhost:8080/swagger-ui/index.html#/` para a documentação interativa.
 
-Conta para autenticação
-Usuario: galo
+Conta para autenticação <br>
+Usuario: galo <br>
 Senha: password
 
 ## Endpoints exemplos
