@@ -16,13 +16,20 @@ public class WalletAsset {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    private TransactionType transactionType;
+
+    public enum TransactionType {
+        BUY,
+        SELL
+    }
+
     // Relação ManyToOne para Wallet
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id", nullable = false)
     @JsonBackReference
     private Wallet wallet;
 
-    // <<< Foi adicionado: campo asset >>>
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "asset_id", nullable = false)
     private Asset asset;
@@ -39,6 +46,14 @@ public class WalletAsset {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public TransactionType getTransactionType() {
+    return transactionType;
+    }
+
+    public void setTransactionType(TransactionType transactionType) {
+        this.transactionType = transactionType;
     }
 
     public Wallet getWallet() {
