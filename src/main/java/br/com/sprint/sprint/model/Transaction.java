@@ -2,14 +2,20 @@ package br.com.sprint.sprint.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
-@Table(name = "wallet_assets")
+@Table(name = "transactions")
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-public class WalletAsset {
+public class Transaction {
+
+    public enum TransactionType {
+        BUY,
+        SELL
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,9 +30,13 @@ public class WalletAsset {
     @JoinColumn(name = "asset_id", nullable = false)
     private Asset asset;
 
-    private BigDecimal quantity = BigDecimal.ZERO;
+    private BigDecimal quantity;
+    private BigDecimal price;
 
-    private BigDecimal averagePrice = BigDecimal.ZERO;
+    @Enumerated(EnumType.STRING)
+    private TransactionType transactionType;
+
+    private LocalDateTime transactionDate = LocalDateTime.now();
 
     // Getters & Setters
     public Long getId() {
@@ -61,11 +71,27 @@ public class WalletAsset {
         this.quantity = quantity;
     }
 
-    public BigDecimal getAveragePrice() {
-        return averagePrice;
+    public BigDecimal getPrice() {
+        return price;
     }
 
-    public void setAveragePrice(BigDecimal averagePrice) {
-        this.averagePrice = averagePrice;
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public TransactionType getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(TransactionType transactionType) {
+        this.transactionType = transactionType;
+    }
+
+    public LocalDateTime getTransactionDate() {
+        return transactionDate;
+    }
+
+    public void setTransactionDate(LocalDateTime transactionDate) {
+        this.transactionDate = transactionDate;
     }
 }

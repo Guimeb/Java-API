@@ -2,78 +2,69 @@ package br.com.sprint.sprint.controller;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
-import br.com.sprint.sprint.dto.*;
+import org.springframework.web.bind.annotation.*;
+
+import br.com.sprint.sprint.dto.WalletAssetRequestCreate;
+import br.com.sprint.sprint.dto.WalletAssetRequestUpdate;
+import br.com.sprint.sprint.dto.WalletAssetResponse;
 import br.com.sprint.sprint.model.WalletAsset;
 import br.com.sprint.sprint.service.WalletAssetService;
+import br.com.sprint.sprint.service.WalletService;
 
 @RestController
-@RequestMapping("/wallets/{walletId}/assets")
+@RequestMapping("/users/{userId}/wallet/assets")
 public class WalletAssetController {
 
-    private final WalletAssetService service;
+        private final WalletAssetService walletAssetService;
+        private final WalletService walletService;
 
-    public WalletAssetController(WalletAssetService service) {
-        this.service = service;
-    }
+        public WalletAssetController(WalletAssetService walletAssetService, WalletService walletService) {
+                this.walletAssetService = walletAssetService;
+                this.walletService = walletService;
+        }
 
-    @PostMapping
-    public WalletAssetResponse add(
-            @PathVariable Long walletId,
-            @Valid @RequestBody WalletAssetRequestCreate dto) {
-        WalletAsset wa = service.addToWallet(
-                walletId,
-                dto.getAssetId(),
-                dto.getQuantity(),
-                dto.getPurchasePrice());
-        return new WalletAssetResponse(
-                wa.getId(),
-                wa.getWallet().getId(),
-                wa.getAsset().getId(),
-                wa.getQuantity(),
-                wa.getPurchasePrice(),
-                wa.getPurchaseDate());
-    }
+        @PostMapping("/buy")
+        public WalletAssetResponse buyAsset(@PathVariable Long userId,
+                        @Valid @RequestBody WalletAssetRequestCreate request) {
+                Long walletId = walletService.getWalletByUser(userId).getId();
+                WalletAsset wa = walletAssetService.transact(walletId, request.getAssetId(),
+                                request.getQuantity(), request.getPurchasePrice(), "BUY");
+                return toResponse(wa);
+        }
 
-    @GetMapping
-    public List<WalletAssetResponse> list(@PathVariable Long walletId) {
-        return service.listByWallet(walletId).stream()
-                .map(wa -> new WalletAssetResponse(
-                        wa.getId(),
-                        wa.getWallet().getId(),
-                        wa.getAsset().getId(),
-                        wa.getQuantity(),
-                        wa.getPurchasePrice(),
-                        wa.getPurchaseDate()))
-                .collect(Collectors.toList());
-    }
+        @PostMapping("/sell")
+        public WalletAssetResponse sellAsset(@PathVariable Long userId,
+                        @Valid @RequestBody WalletAssetRequestCreate request) {
+                Long walletId = walletService.getWalletByUser(userId).getId();
+                WalletAsset wa = walletAssetService.transact(walletId, request.getAssetId(),
+                                request.getQuantity(), request.getPurchasePrice(), "SELL");
+                return toResponse(wa);
+        }
 
-    @PutMapping("/{walletAssetId}")
-    public WalletAssetResponse update(
-            @PathVariable Long walletId,
-            @PathVariable Long walletAssetId,
-            @Valid @RequestBody WalletAssetRequestUpdate dto) {
-        WalletAsset wa = service.updateInWallet(
-                walletId,
-                walletAssetId,
-                dto.getQuantity(),
-                dto.getPurchasePrice());
-        return new WalletAssetResponse(
-                wa.getId(),
-                wa.getWallet().getId(),
-                wa.getAsset().getId(),
-                wa.getQuantity(),
-                wa.getPurchasePrice(),
-                wa.getPurchaseDate());
-    }
+        @PutMapping("/update")
+        public WalletAssetResponse updateAsset(@PathVariable Long userId,
+                        @Valid @RequestBody WalletAssetRequestUpdate request) {
+                Long walletId = walletService.getWalletByUser(userId).getId();
+                WalletAsset wa = walletAssetService.updateInWallet(walletId, request.getWalletAssetId(),
+                                request.getQuantity(), request.getAveragePrice());
+                return toResponse(wa);
+        }
 
-    @DeleteMapping("/{walletAssetId}")
-    public void remove(
-            @PathVariable Long walletId,
-            @PathVariable Long walletAssetId) {
-        service.removeFromWallet(walletId, walletAssetId);
-    }
+        @GetMapping
+        public List<WalletAssetResponse> listAssets(@PathVariable Long userId) {
+                Long walletId = walletService.getWalletByUser(userId).getId();
+                List<WalletAsset> assets = walletAssetService.listByWallet(walletId);
+                return assets.stream().map(this::toResponse).collect(Collectors.toList());
+        }
+
+        private WalletAssetResponse toResponse(WalletAsset wa) {
+                return new WalletAssetResponse(
+                                wa.getId(),
+                                wa.getWallet().getId(),
+                                wa.getAsset().getId(),
+                                wa.getQuantity(),
+                                wa.getAveragePrice());
+        }
 }
