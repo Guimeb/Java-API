@@ -55,15 +55,41 @@ Este projeto é uma API RESTful desenvolvida em Java com Spring Boot para gerenc
 mvn clean spring-boot:run
 ```
 
-Acesse `http://localhost:8080/swagger-ui/index.html#/` para a documentação interativa, e `http://localhost:8080/h2-console` para a base de dados.
+Acesse `http://localhost:8080/swagger-ui/index.html#/` para a documentação interativa em swagger, e `http://localhost:8080/h2-console` para a base de dados.
 
 Conta para autenticação:
 Usuário: galo
 Senha: password
 
----
+URL para alterar no H2:
+jdbc:h2:mem:testdb
+Usuário: galo
 
-## Endpoints exemplos
+## Execução de Endpoints
+
+> **Observação:** O usuário de `id = 1` é apenas para autenticação inicial, não possui wallet nem assets vinculados.
+
+Há uma ordem necessária para o uso dos endpoints:
+
+1. **Autenticação**
+
+   * Use o endpoint `/authenticate` para gerar o token JWT.
+
+2. **Criar um usuário**
+
+   * Ao criar um usuário via `/users`, uma *wallet* é automaticamente gerada.
+
+3. **Criar um Asset (Ação)**
+
+   * Crie ativos via `/assets` para permitir movimentações futuras na carteira.
+
+4. **Adicionar Ativos à Carteira (WalletAsset)**
+
+   * Utilize os endpoints `buy` e `sell` para movimentar os ativos nas wallets.
+
+> Caso não seja cumprida esta ordem, o código pode retornar "internal error".
+
+---
 
 ### Autenticação
 
@@ -234,13 +260,12 @@ Senha: password
   * Exemplo de rota protegida.
   * Retorna "Hello from private API controller" se autorizado.
 
----
-
 ## Validação e Respostas
 
 * 400: Erros de validação de campos.
 * 404: Recurso não encontrado.
 * 200 / 201: Operação bem-sucedida.
+* 500: Internal Error, falta de atributo para executar
 
 ---
 
