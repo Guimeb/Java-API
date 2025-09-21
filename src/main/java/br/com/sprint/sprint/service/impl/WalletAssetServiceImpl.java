@@ -2,7 +2,6 @@ package br.com.sprint.sprint.service.impl;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.math.RoundingMode;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,8 +37,7 @@ public class WalletAssetServiceImpl implements WalletAssetService {
     }
 
     @Override
-    public WalletAsset transact(Long walletId, Long assetId, BigDecimal quantity, BigDecimal pricePerUnit,
-            String type) {
+    public WalletAsset transact(Long walletId, Long assetId, BigDecimal quantityBd, BigDecimal priceBd, String type) {
         Wallet wallet = walletRepo.findById(walletId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet não encontrada: " + walletId));
         Asset asset = assetRepo.findById(assetId)
@@ -50,19 +48,24 @@ public class WalletAssetServiceImpl implements WalletAssetService {
                     WalletAsset newWa = new WalletAsset();
                     newWa.setWallet(wallet);
                     newWa.setAsset(asset);
-                    newWa.setQuantity(BigDecimal.ZERO);
-                    newWa.setAveragePrice(BigDecimal.ZERO);
+                    newWa.setQuantity(new br.com.sprint.sprint.model.vo.Quantity(java.math.BigDecimal.ZERO));
+                    newWa.setAveragePrice(new br.com.sprint.sprint.model.vo.Price(java.math.BigDecimal.ZERO));
                     return newWa;
                 });
 
+        br.com.sprint.sprint.model.vo.Quantity quantity = new br.com.sprint.sprint.model.vo.Quantity(quantityBd);
+        br.com.sprint.sprint.model.vo.Price price = new br.com.sprint.sprint.model.vo.Price(priceBd);
+
         if ("BUY".equalsIgnoreCase(type)) {
-            BigDecimal totalValue = wa.getAveragePrice().multiply(wa.getQuantity())
-                    .add(pricePerUnit.multiply(quantity));
-            BigDecimal newQuantity = wa.getQuantity().add(quantity);
+            br.com.sprint.sprint.model.vo.Price totalValue = new br.com.sprint.sprint.model.vo.Price(
+                    wa.getAveragePrice().getValue().multiply(wa.getQuantity().getValue())
+                            .add(price.getValue().multiply(quantity.getValue())));
+            br.com.sprint.sprint.model.vo.Quantity newQuantity = wa.getQuantity().add(quantity);
             wa.setQuantity(newQuantity);
-            wa.setAveragePrice(totalValue.divide(newQuantity, 6, RoundingMode.HALF_UP));
+            wa.setAveragePrice(new br.com.sprint.sprint.model.vo.Price(
+                    totalValue.getValue().divide(newQuantity.getValue(), 6, java.math.RoundingMode.HALF_UP)));
         } else if ("SELL".equalsIgnoreCase(type)) {
-            if (wa.getQuantity().compareTo(quantity) < 0) {
+            if (wa.getQuantity().getValue().compareTo(quantity.getValue()) < 0) {
                 throw new IllegalArgumentException("Não há quantidade suficiente para vender");
             }
             wa.setQuantity(wa.getQuantity().subtract(quantity));
@@ -75,8 +78,8 @@ public class WalletAssetServiceImpl implements WalletAssetService {
         Transaction tx = new Transaction();
         tx.setWallet(wallet);
         tx.setAsset(asset);
-        tx.setQuantity(quantity);
-        tx.setPrice(pricePerUnit);
+        tx.setQuantity(quantity.getValue());
+        tx.setPrice(price.getValue());
         tx.setTransactionType(
                 "BUY".equalsIgnoreCase(type) ? Transaction.TransactionType.BUY : Transaction.TransactionType.SELL);
         transactionRepo.save(tx);
@@ -91,12 +94,13 @@ public class WalletAssetServiceImpl implements WalletAssetService {
     }
 
     @Override
-    public WalletAsset updateInWallet(Long walletId, Long walletAssetId, BigDecimal quantity, BigDecimal averagePrice) {
+    public WalletAsset updateInWallet(Long walletId, Long walletAssetId, BigDecimal quantityBd,
+            BigDecimal averagePriceBd) {
         WalletAsset wa = waRepo.findByIdAndWalletId(walletAssetId, walletId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "WalletAsset não encontrado: " + walletAssetId + " na carteira " + walletId));
-        wa.setQuantity(quantity);
-        wa.setAveragePrice(averagePrice);
+        wa.setQuantity(new br.com.sprint.sprint.model.vo.Quantity(quantityBd));
+        wa.setAveragePrice(new br.com.sprint.sprint.model.vo.Price(averagePriceBd));
         return waRepo.save(wa);
     }
 

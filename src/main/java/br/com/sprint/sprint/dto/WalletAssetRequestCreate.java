@@ -7,9 +7,11 @@ import java.math.BigDecimal;
 public class WalletAssetRequestCreate {
     @NotNull
     private Long assetId;
+
     @NotNull
     @DecimalMin("0.0001")
     private BigDecimal quantity;
+
     @NotNull
     @DecimalMin("0.0")
     private BigDecimal purchasePrice;

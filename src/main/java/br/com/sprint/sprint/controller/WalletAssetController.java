@@ -64,7 +64,8 @@ public class WalletAssetController {
                                 wa.getId(),
                                 wa.getWallet().getId(),
                                 wa.getAsset().getId(),
-                                wa.getQuantity(),
-                                wa.getAveragePrice());
+                                wa.getQuantity().getValue(),
+                                wa.getAveragePrice().getValue());
         }
+
 }

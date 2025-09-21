@@ -1,10 +1,10 @@
 package br.com.sprint.sprint.model;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import br.com.sprint.sprint.model.vo.Price;
+import br.com.sprint.sprint.model.vo.Quantity;
 
 @Entity
 @Table(name = "wallet_assets")
@@ -24,9 +24,13 @@ public class WalletAsset {
     @JoinColumn(name = "asset_id", nullable = false)
     private Asset asset;
 
-    private BigDecimal quantity = BigDecimal.ZERO;
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "quantity", nullable = false))
+    private Quantity quantity = new Quantity(java.math.BigDecimal.ZERO);
 
-    private BigDecimal averagePrice = BigDecimal.ZERO;
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "average_price", nullable = false))
+    private Price averagePrice = new Price(java.math.BigDecimal.ZERO);
 
     // Getters & Setters
     public Long getId() {
@@ -53,19 +57,19 @@ public class WalletAsset {
         this.asset = asset;
     }
 
-    public BigDecimal getQuantity() {
+    public Quantity getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(BigDecimal quantity) {
+    public void setQuantity(Quantity quantity) {
         this.quantity = quantity;
     }
 
-    public BigDecimal getAveragePrice() {
+    public Price getAveragePrice() {
         return averagePrice;
     }
 
-    public void setAveragePrice(BigDecimal averagePrice) {
+    public void setAveragePrice(Price averagePrice) {
         this.averagePrice = averagePrice;
     }
 }
