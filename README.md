@@ -57,13 +57,12 @@ mvn clean spring-boot:run
 
 Acesse `http://localhost:8080/swagger-ui/index.html#/` para a documentação interativa em swagger, e `http://localhost:8080/h2-console` para a base de dados.
 
-Conta para autenticação:
-Usuário: galo
-Senha: password
+Conta para autenticação:<br>
+Usuário: *galo* <br>
+Senha: *password*
 
-URL para alterar no H2:
-jdbc:h2:mem:testdb
-Usuário: galo
+URL para alterar no H2: *jdbc:h2:mem:testdb* <br>
+Usuário: *galo*
 
 ## Execução de Endpoints
 
