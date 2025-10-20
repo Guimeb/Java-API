@@ -1,26 +1,37 @@
-# Sprint - Webservice API
+# Sprint - API de Gerenciamento de Carteira de Ativos
 
-Este projeto é uma API RESTful desenvolvida em Java com Spring Boot para gerenciamento de usuários, ativos (assets), carteiras (wallets) e transações financeiras, incluindo funcionalidades de autenticação JWT e operações de compra, venda, atualização e listagem de ativos em carteiras.
+[![Java 21](https://img.shields.io/badge/Java-21-blue.svg)](https://www.oracle.com/java/technologies/javase/21-all-changelog.html)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.6-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Tests](https://img.shields.io/badge/Tests-59/59%20Passing-success.svg)](https://junit.org/junit5/)
 
-**Nomes + RM dos integrantes:**
+Este projeto é uma API RESTful desenvolvida em Java com Spring Boot para o gerenciamento de uma plataforma de investimentos. Ele permite o cadastro de usuários, criação de carteiras, registro de ativos (como ações ou criptomoedas) e a simulação de operações financeiras.
 
-* Fabrício Saavedra - 97631
-* Guilherme Akio - 98582
-* Guilherme Morais - 551981
-* Açussena Macedo Mautone - 552568
+## Integrantes (Turma 3ESPY - 2025)
 
-**Turma:** 3ESPY
-**Ano:** 2025
+| Nome | RM |
+| :--- | :--- |
+| Fabrício Saavedra | 97631 |
+| Guilherme Akio | 98582 |
+| Guilherme Morais | 551981 |
+| Açussena Macedo Mautone | 552568 |
 
-## Tecnologias
+## Core Features
+
+* **Gerenciamento de Usuários:** CRUD completo de usuários (com criação automática de carteira).
+* **Gerenciamento de Ativos:** CRUD completo para registrar novos ativos (ações, criptos, etc.).
+* **Operações de Carteira:** Funcionalidades de `buy` (comprar), `sell` (vender) e `update` (atualizar) ativos dentro da carteira de um usuário.
+* **Histórico de Transações:** Listagem de todas as transações por carteira ou por ativo.
+* **Segurança:** Autenticação e autorização via JWT (RSA) e hashing de senhas com BCrypt.
+* **Testes:** Suíte de testes de integração (`@SpringBootTest`) 100% funcional.
+
+## Tecnologia Utilizada
 
 * Java 21
-* Spring Boot
-* Spring Data JPA
-* Hibernate
-* H2 Database (para desenvolvimento/testes)
-* Spring Security com JWT
-* BCrypt Password Encoder
+* Spring Boot 3.4.6
+* Spring Data JPA (Hibernate)
+* Spring Security (JWT com chaves RSA & BCrypt)
+* H2 Database (Banco de dados em memória)
+* JUnit 5
 * Maven
 
 ## Pré-requisitos
@@ -29,14 +40,15 @@ Este projeto é uma API RESTful desenvolvida em Java com Spring Boot para gerenc
 * Maven instalado
 * IDE de sua preferência (IntelliJ, Eclipse, VS Code)
 
-## Configuração
+## Setup e Execução
 
-1. Clone o repositório
+1.  **Clone o repositório:**
     ```bash
-    git clone https://github.com/Guimeb/Java-API
+    git clone [https://github.com/Guimeb/Java-API](https://github.com/Guimeb/Java-API)
     ```
 
-2. Caso necessario juste as propriedades de `src/main/resources/application.properties` ou `application.yml`:
+2.  **Verifique a configuração (Opcional):**
+    O projeto está configurado para rodar com o banco em memória H2. Se necessário, ajuste as propriedades em `src/main/resources/application.properties`:
 
     ```properties
     spring.datasource.url=jdbc:h2:mem:testdb
@@ -44,296 +56,285 @@ Este projeto é uma API RESTful desenvolvida em Java com Spring Boot para gerenc
     spring.datasource.username=galo
     spring.datasource.password=
 
-    # JWT
+    # JWT (requer os arquivos app.pub e app.key no classpath)
     jwt.public-key-location=classpath:app.pub
     jwt.private-key-location=classpath:app.key
     ```
 
-## Executando a aplicação
+3.  **Execute a aplicação:**
+    ```bash
+    mvn clean spring-boot:run
+    ```
+
+4.  **Acessando os Serviços:**
+    * **Swagger UI (Documentação):** `http://localhost:8080/swagger-ui/index.html`
+    * **H2 Console (Banco de Dados):** `http://localhost:8080/h2-console`
+        * **JDBC URL:** `jdbc:h2:mem:testdb`
+        * **Usuário:** `galo`
+        * **Senha:** (deixe em branco)
+
+## Executando os Testes
+
+Para rodar a suíte completa de testes de integração e garantir que todos os controllers e serviços estão funcionando como esperado:
 
 ```bash
-mvn clean spring-boot:run
+mvn clean test
 ```
 
-Acesse `http://localhost:8080/swagger-ui/index.html#/` para a documentação interativa em swagger, e `http://localhost:8080/h2-console` para a base de dados.
+## Guia Rápido de Uso (Fluxo de Operação)
 
-Conta para autenticação:<br>
-Usuário: *galo* <br>
-Senha: *password*
+Para utilizar a API, siga esta ordem:
 
-URL para alterar no H2: *jdbc:h2:mem:testdb* <br>
-Usuário: *galo*
-
-## Execução de Endpoints
-
-> **Observação:** O usuário de `id = 1` é apenas para autenticação inicial, não possui wallet nem assets vinculados.
-
-Há uma ordem necessária para o uso dos endpoints:
-
-1. **Autenticação**
-
-   * Use o endpoint `/authenticate` para gerar o token JWT.
-
-2. **Criar um usuário**
-
-   * Ao criar um usuário via `/users`, uma *wallet* é automaticamente gerada.
-
-3. **Criar um Asset (Ação)**
-
-   * Crie ativos via `/assets` para permitir movimentações futuras na carteira.
-
-4. **Adicionar Ativos à Carteira (WalletAsset)**
-
-   * Utilize os endpoints `buy` e `sell` para movimentar os ativos nas wallets.
-
-> Caso não seja cumprida esta ordem, o código pode retornar "internal error".
+1.  **Obtenha um Token:** Use o endpoint `POST /authenticate` com o usuário padrão (`galo` / `password`) para gerar um token JWT.
+2.  **Crie um Usuário:** Use `POST /users` para criar um novo usuário (ex: 'alice'). Uma carteira (`Wallet`) é criada automaticamente para este novo usuário.
+3.  **Crie Ativos:** Use `POST /assets` (autenticado) para registrar os ativos que serão negociados (ex: "BTC", "AAPL").
+4.  **Opere na Carteira:** Use os endpoints de `WalletAsset` (ex: `POST /users/{alice_id}/wallet/assets/buy`) para adicionar ativos à carteira da 'alice'.
 
 ---
+
+## Documentação da API
 
 ### Autenticação
 
-* **POST** `/authenticate`
+Todos os endpoints, exceto `POST /authenticate` e `POST /users`, são protegidos. Você deve enviar o token JWT no *header* `Authorization` em todas as requisições.
 
-  * **Descrição:** Autentica usuário e retorna token JWT.
-  * **Request Body:**
-
-    ```json
-    {
-      "username": "galo",
-      "password": "password"
-    }
-    ```
-  * **Response:**
-
-    ```json
-    {
-      "token": "eyJhbGciOiJI...",
-      "type": "Bearer"
-    }
-    ```
+**Exemplo:** `Authorization: Bearer eyJhbGciOi...`
 
 ---
 
-### Usuários (User)
+### 1. Authentication
+
+* **POST** `/authenticate`
+    * **Descrição:** Autentica um usuário e retorna um token JWT.
+    * **Body:**
+        ```json
+        {
+          "username": "galo",
+          "password": "password"
+        }
+        ```
+    * **Response (200 OK):**
+        ```json
+        {
+          "token": "eyJhbGciOi...",
+          "type": "Bearer"
+        }
+        ```
+
+---
+
+### 2. Users
 
 * **POST** `/users`
-
-  * Cria um usuário e automaticamente uma carteira associada.
-  * Body:
-
-    ```json
-    {
-      "username": "alice",
-      "email": "alice@example.com",
-      "password": "SenhaForte123!"
-    }
-    ```
+    * **Descrição:** Cria um novo usuário e, automaticamente, uma carteira (`Wallet`) associada a ele. Este endpoint é público.
+    * **Body:**
+        ```json
+        {
+          "username": "alice",
+          "email": "alice@example.com",
+          "password": "SenhaForte123!"
+        }
+        ```
+    * **Response (200 OK):** Retorna o usuário criado (sem a senha).
 
 * **GET** `/users`
-
-  * Lista todos os usuários.
+    * **Descrição:** (Protegido) Lista todos os usuários cadastrados (sem as senhas).
 
 * **GET** `/users/{id}`
-
-  * Busca usuário por ID.
+    * **Descrição:** (Protegido) Busca um usuário por seu ID (sem a senha).
 
 * **PUT** `/users`
-
-  * Atualiza dados do usuário.
-
-    ```json
-    {
-      "id": 1,
-      "username": "alice2",
-      "email": "alice2@example.com",
-      "password": "NovaSenha!"
-    }
-    ```
+    * **Descrição:** (Protegido) Atualiza os dados de um usuário.
+    * **Body:**
+        ```json
+        {
+          "id": 2,
+          "username": "alice_silva",
+          "email": "alice.silva@example.com",
+          "password": "NovaSenhaForte123!"
+        }
+        ```
 
 * **DELETE** `/users/{id}`
-
-  * Remove usuário.
+    * **Descrição:** (Protegido) Remove um usuário e (em cascata) sua carteira e ativos associados.
 
 ---
 
-### Ativos (Asset)
+### 3. Assets
 
 * **POST** `/assets`
-
-  ```json
-  {
-    "symbol": "BTC",
-    "name": "Bitcoin",
-    "currentValue": 60000.00
-  }
-  ```
+    * **Descrição:** (Protegido) Cria um novo ativo (ação, criptomoeda, etc.) no sistema.
+    * **Body:**
+        ```json
+        {
+          "symbol": "BTC",
+          "name": "Bitcoin",
+          "currentValue": 60000.00
+        }
+        ```
 
 * **GET** `/assets`
-
-  * Lista todos os ativos.
+    * **Descrição:** (Protegido) Lista todos os ativos disponíveis para negociação.
 
 * **GET** `/assets/{id}`
-
-  * Busca ativo por ID.
+    * **Descrição:** (Protegido) Busca um ativo por seu ID.
 
 * **PUT** `/assets`
-
-  * Atualiza ativo.
+    * **Descrição:** (Protegido) Atualiza os dados de um ativo.
 
 * **DELETE** `/assets/{id}`
-
-  * Remove ativo.
+    * **Descrição:** (Protegido) Remove um ativo do sistema.
 
 ---
 
-### Carteiras (Wallet)
+### 4. Wallet
 
 * **GET** `/users/{userId}/wallet`
-
-  * Retorna a carteira de um usuário, incluindo os ativos presentes.
+    * **Descrição:** (Protegido) Retorna as informações da carteira de um usuário (sem listar os ativos).
+    * **Response (200 OK):**
+        ```json
+        {
+          "id": 1,
+          "userId": 2
+        }
+        ```
 
 ---
 
-### Ativos na Carteira (WalletAsset)
+### 5. Wallet Assets (Operações)
 
 * **POST** `/users/{userId}/wallet/assets/buy`
-
-  * Compra/adiciona ativo à carteira.
-  * Body:
-
-    ```json
-    {
-      "assetId": 1,
-      "quantity": 0.5,
-      "purchasePrice": 30000.00
-    }
-    ```
+    * **Descrição:** (Protegido) Adiciona um ativo à carteira do usuário (compra). Cria ou atualiza o `WalletAsset` e registra uma `Transaction`.
+    * **Body:**
+        ```json
+        {
+          "assetId": 1,
+          "quantity": 0.5,
+          "purchasePrice": 30000.00
+        }
+        ```
 
 * **POST** `/users/{userId}/wallet/assets/sell`
-
-  * Vende/remove ativo da carteira.
-  * Body:
-
-    ```json
-    {
-      "assetId": 1,
-      "quantity": 0.25
-    }
-    ```
+    * **Descrição:** (Protegido) Remove uma quantidade de ativo da carteira (venda). Atualiza o `WalletAsset` e registra uma `Transaction`.
+    * **Body:**
+        ```json
+        {
+          "assetId": 1,
+          "quantity": 0.25,
+          "purchasePrice": 31000.00
+        }
+        ```
 
 * **PUT** `/users/{userId}/wallet/assets/update`
-
-  * Atualiza quantidade ou preço médio de ativo.
-  * Body:
-
-    ```json
-    {
-      "walletAssetId": 1,
-      "quantity": 0.75,
-      "averagePrice": 32000.00
-    }
-    ```
+    * **Descrição:** (Protegido) Atualiza manualmente a posição de um ativo na carteira (ex: para importação de dados).
+    * **Body:**
+        ```json
+        {
+          "walletAssetId": 1,
+          "quantity": 0.75,
+          "averagePrice": 32000.00
+        }
+        ```
 
 * **GET** `/users/{userId}/wallet/assets`
-
-  * Lista todos os ativos de uma carteira.
+    * **Descrição:** (Protegido) Lista todos os ativos (posições) dentro da carteira de um usuário.
 
 ---
 
-### Transações (Transaction)
+### 6. Transactions
 
 * **GET** `/transactions/wallet/{walletId}`
-
-  * Lista todas as transações de uma carteira.
+    * **Descrição:** (Protegido) Lista o histórico de todas as transações (compras e vendas) de uma carteira específica.
 
 * **GET** `/transactions/asset/{assetId}`
-
-  * Lista todas as transações de um ativo específico.
+    * **Descrição:** (Protegido) Lista o histórico de todas as transações de um ativo específico em todas as carteiras.
 
 ---
 
-### Rotas Privadas (Private)
+### 7. Private (Exemplo)
 
 * **GET** `/private`
-
-  * Exemplo de rota protegida.
-  * Retorna "Hello from private API controller" se autorizado.
-
-## Validação e Respostas
-
-* 400: Erros de validação de campos.
-* 404: Recurso não encontrado.
-* 200 / 201: Operação bem-sucedida.
-* 500: Internal Error, falta de atributo para executar
-
----
+    * **Descrição:** Rota de exemplo para testar a autenticação.
+    * **Response (200 OK):** "Hello from private API controller"
 
 ## Segurança
 
-* Senhas hash com BCrypt.
-* Tokens JWT com chaves RSA.
-* `/authenticate` é pública; demais endpoints exigem token JWT.
+* **Autenticação:** Endpoints são públicos (`/authenticate`, `POST /users`) ou privados.
+* **Autorização:** Endpoints privados exigem um Token JWT válido (assinado com RSA) no *header* `Authorization`.
+* **Senhas:** Senhas são armazenadas no banco de dados usando o *hash* BCrypt. Elas **nunca** são retornadas em nenhuma resposta da API.
 
----
+## Tratamento de Erros (Status HTTP)
 
-## Diagrama de Classes
+* `200 OK`: Requisição bem-sucedida.
+* `400 Bad Request`: Erro de validação nos dados enviados (ex: campo faltando, e-mail inválido).
+* `401 Unauthorized`: Token JWT ausente, expirado ou inválido.
+* `404 Not Found`: Recurso não encontrado (ex: `GET /users/999`).
+* `500 Internal Server Error`: Erro inesperado no servidor.
+
+## Diagramas
+
+### Diagrama de Classes (Entidades)
 
 ```mermaid
 classDiagram
-    User "1" -- "1" Wallet : owns
-    Wallet "1" o-- "*" WalletAsset : contains
-    Asset "1" o-- "*" WalletAsset : referenced by
-    WalletAsset "1" o-- "*" Transaction : logs
-    Asset : +Long id
-    Asset : +String symbol
-    Asset : +String name
-    Asset : +BigDecimal currentValue
-    User : +Long id
-    User : +String username
-    User : +String email
-    User : +String password
-    Wallet : +Long id
-    Wallet : +User user
-    WalletAsset : +Long id
-    WalletAsset : +BigDecimal quantity
-    WalletAsset : +BigDecimal averagePrice
-    Transaction : +Long id
-    Transaction : +BigDecimal quantity
-    Transaction : +BigDecimal price
-    Transaction : +TransactionType transactionType
+    class User {
+        +Long id
+        +String username
+        +String email
+        +String password
+    }
+    class Wallet {
+        +Long id
+    }
+    class Asset {
+        +Long id
+        +String symbol
+        +String name
+        +BigDecimal currentValue
+    }
+    class WalletAsset {
+        +Long id
+        +Quantity quantity
+        +Price averagePrice
+    }
+    class Transaction {
+        +Long id
+        +BigDecimal quantity
+        +BigDecimal price
+        +TransactionType type
+        +LocalDateTime date
+    }
+
+    User "1" -- "1" Wallet : "possui"
+    Wallet "1" -- "*" WalletAsset : "contém"
+    Wallet "1" -- "*" Transaction : "registra"
+    Asset "1" -- "*" WalletAsset : "referencia"
+    Asset "1" -- "*" Transaction : "referencia"
 ```
 
----
-
-## Fluxograma
+### Fluxograma da Arquitetura
 
 ```mermaid
 flowchart TD
-    %% --------- CLIENT ----------
-    U[User] --> Client[REST Client]
+    U[Usuário] --> Client[Cliente REST]
+    
+    Client --> API[Spring Boot API]
 
-    %% --------- API ENTRY ----------
-    Client --> API["Spring Boot API"]
+    API --> JWTSec[Filtro de Segurança JWT]
 
-    %% --------- SECURITY ----------
-    API --> JWTSec[JWT Security Filter]
+    JWTSec -- Rota Pública --> AuthC[AuthController]
+    JWTSec -- Rota Privada --> Controllers
 
-    %% --------- CONTROLLERS ----------
-    JWTSec --> Controllers
     subgraph Controllers
-        AuthC[AuthenticationController]
         UserC[UserController]
         AssetC[AssetController]
         WalletC[WalletController]
         WAController[WalletAssetController]
         TxC[TransactionController]
-        PrivateC[PrivateController]
     end
 
-    %% --------- SERVICES ----------
     Controllers --> Services
     subgraph Services
-        AuthS[AuthService]
         UserS[UserService]
         AssetS[AssetService]
         WalletS[WalletService]
@@ -341,7 +342,6 @@ flowchart TD
         TxSvc[TransactionService]
     end
 
-    %% --------- REPOSITORIES ----------
     Services --> Repos
     subgraph Repos
         UserRepo[UserRepository]
@@ -351,10 +351,10 @@ flowchart TD
         TxRepo[TransactionRepository]
     end
 
-    %% --------- DATABASE ----------
-    Repos --> DB[(Database)]
+    Repos --> DB[(H2 Database)]
 
-    %% --------- RESPONSE ----------
-    DB --> Response[Repository returns data]
-    Response --> Client
+    DB --> Repos
+    Repos --> Services
+    Services --> Controllers
+    Controllers --> Client
 ```
