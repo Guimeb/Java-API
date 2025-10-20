@@ -68,7 +68,7 @@ class WalletAssetServiceImplTest {
         WalletAsset resultado = service.transact(1L, 10L, BigDecimal.valueOf(10), BigDecimal.valueOf(10), "BUY");
 
         assertNotNull(resultado);
-        assertTrue(resultado.getQuantity().getValue().compareTo(BigDecimal.valueOf(20)) == 0);
+        assertEquals(0, resultado.getQuantity().getValue().compareTo(BigDecimal.valueOf(20)));
         verify(transactionRepo).save(any(Transaction.class));
     }
 
@@ -94,7 +94,7 @@ class WalletAssetServiceImplTest {
 
         WalletAsset resultado = service.transact(1L, 10L, BigDecimal.valueOf(4), BigDecimal.valueOf(5), "SELL");
 
-        assertEquals(BigDecimal.valueOf(6), resultado.getQuantity().getValue());
+        assertEquals(0, resultado.getQuantity().getValue().compareTo(BigDecimal.valueOf(6)));
         verify(transactionRepo).save(any(Transaction.class));
     }
 
@@ -148,8 +148,8 @@ class WalletAssetServiceImplTest {
 
         WalletAsset atualizado = service.updateInWallet(1L, 100L, BigDecimal.TEN, BigDecimal.valueOf(9));
 
-        assertEquals(BigDecimal.TEN, atualizado.getQuantity().getValue());
-        assertEquals(BigDecimal.valueOf(9), atualizado.getAveragePrice().getValue());
+        assertEquals(0, atualizado.getQuantity().getValue().compareTo(BigDecimal.TEN));
+        assertEquals(0, atualizado.getAveragePrice().getValue().compareTo(BigDecimal.valueOf(9)));
     }
 
     @Test

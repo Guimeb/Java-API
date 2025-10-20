@@ -1,6 +1,7 @@
 package br.com.sprint.sprint.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -19,10 +20,12 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    
     private String username;
 
     private String email;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
