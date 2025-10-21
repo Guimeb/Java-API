@@ -17,16 +17,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
-@WithMockUser
+@SpringBootTest // Inicia o contexto Spring Boot
+@AutoConfigureMockMvc // Configura o MockMvc
+@Transactional // Garante o rollback de dados
+@WithMockUser // Simula usuário autenticado
 public class WalletControllerIntegrationTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private MockMvc mockMvc; // Simula requisições HTTP
 
-    // Repositórios para setup e limpeza
+    // Repositórios para setup e limpeza de dados
     @Autowired private UserRepository userRepository;
     @Autowired private WalletRepository walletRepository;
     @Autowired private WalletAssetRepository walletAssetRepository;
@@ -35,25 +35,25 @@ public class WalletControllerIntegrationTest {
 
 
     private User testUser;
-    private Wallet testWallet;
+    private Wallet testWallet; // Carteira base criada para o teste
 
-    @BeforeEach
+    @BeforeEach // Executado antes de cada método de teste
     void setup() {
-        // Limpa TODOS os repositórios na ordem correta (evita erro de foreign key)
+        // Limpa TODOS os repositórios na ordem correta para garantir estado limpo
         transactionRepository.deleteAll();
         walletAssetRepository.deleteAll();
         walletRepository.deleteAll();
         userRepository.deleteAll();
         assetRepository.deleteAll();
 
-        // Cria User
+        // Cria e salva User
         testUser = new User();
         testUser.setUsername("testuser");
         testUser.setEmail("test@user.com");
         testUser.setPassword("password");
         testUser = userRepository.save(testUser);
 
-        // Cria Wallet
+        // Cria e salva Wallet, vinculada ao User
         testWallet = new Wallet();
         testWallet.setUser(testUser);
         testWallet = walletRepository.save(testWallet);
@@ -61,9 +61,10 @@ public class WalletControllerIntegrationTest {
 
     @Test
     void testGetWalletByUserId() throws Exception {
+        // Testa o endpoint GET /users/{userId}/wallet para buscar a carteira do usuário
         mockMvc.perform(get("/users/" + testUser.getId() + "/wallet"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(testWallet.getId().intValue())))
-                .andExpect(jsonPath("$.userId", is(testUser.getId().intValue())));
+                .andExpect(status().isOk()) // Espera HTTP 200
+                .andExpect(jsonPath("$.id", is(testWallet.getId().intValue()))) // Verifica o ID da carteira
+                .andExpect(jsonPath("$.userId", is(testUser.getId().intValue()))); // Verifica o ID do usuário associado
     }
 }

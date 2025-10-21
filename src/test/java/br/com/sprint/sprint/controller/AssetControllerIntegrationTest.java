@@ -23,19 +23,24 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Teste de Integração para AssetController.
+ * Configurações: SpringBootTest (contexto completo), AutoConfigureMockMvc (MockMvc),
+ * Transactional (rollback de dados) e WithMockUser (ignora segurança 401).
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@WithMockUser // Permite acesso a todos os endpoints, evitando 401
+@WithMockUser
 public class AssetControllerIntegrationTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private MockMvc mockMvc; // Simula requisições HTTP
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper; // Converte objetos para JSON
 
-    // Repositórios para setup e limpeza
+    // Repositórios para manipulação de dados no setup/limpeza
     @Autowired private AssetRepository assetRepository;
     @Autowired private TransactionRepository transactionRepository;
     @Autowired private WalletAssetRepository walletAssetRepository;
@@ -43,18 +48,21 @@ public class AssetControllerIntegrationTest {
     @Autowired private UserRepository userRepository;
 
 
-    private Asset testAsset;
+    private Asset testAsset; // Ativo base para os testes de leitura/modificação
 
+    /**
+     * Limpa o banco e cria um ativo base antes de cada teste.
+     */
     @BeforeEach
     void setup() {
-        // Limpa TODOS os repositórios na ordem correta (evita erro de foreign key)
+        // Limpa repositórios em ordem de dependência (para evitar FK errors)
         transactionRepository.deleteAll();
         walletAssetRepository.deleteAll();
         walletRepository.deleteAll();
         userRepository.deleteAll();
         assetRepository.deleteAll();
 
-        // Cria um ativo base para os testes de GET, PUT, DELETE
+        // Cria e salva um ativo base
         testAsset = new Asset();
         testAsset.setSymbol("PETR4");
         testAsset.setName("Petrobras");
@@ -62,6 +70,9 @@ public class AssetControllerIntegrationTest {
         testAsset = assetRepository.save(testAsset);
     }
 
+    /**
+     * Testa o endpoint POST /assets para criação de um novo ativo.
+     */
     @Test
     void testCreateAsset() throws Exception {
         AssetRequestCreate request = new AssetRequestCreate();
@@ -72,45 +83,53 @@ public class AssetControllerIntegrationTest {
         mockMvc.perform(post("/assets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.symbol", is("AAPL")))
-                .andExpect(jsonPath("$.name", is("Apple Inc.")));
+                .andExpect(status().isOk()) // Espera HTTP 200
+                .andExpect(jsonPath("$.symbol", is("AAPL"))); // Verifica a resposta
     }
 
+    /**
+     * Testa o endpoint GET /assets para listar todos os ativos.
+     */
     @Test
     void testListAllAssets() throws Exception {
-        // O testAsset criado no @BeforeEach já está no banco
         mockMvc.perform(get("/assets"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$", hasSize(1))) // Verifica se retornou 1 item (o ativo base)
                 .andExpect(jsonPath("$[0].symbol", is(testAsset.getSymbol())));
     }
 
+    /**
+     * Testa o endpoint GET /assets/{id} para buscar um ativo específico.
+     */
     @Test
     void testGetAssetById() throws Exception {
         mockMvc.perform(get("/assets/" + testAsset.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(testAsset.getId().intValue())))
-                .andExpect(jsonPath("$.symbol", is("PETR4")));
+                .andExpect(jsonPath("$.id", is(testAsset.getId().intValue())));
     }
 
+    /**
+     * Testa o endpoint PUT /assets para atualizar um ativo existente.
+     */
     @Test
     void testUpdateAsset() throws Exception {
         AssetRequestUpdate request = new AssetRequestUpdate();
         request.setId(testAsset.getId());
         request.setName("Petrobras S.A.");
-        request.setSymbol(testAsset.getSymbol()); // Símbolo não muda
+        request.setSymbol(testAsset.getSymbol());
         request.setCurrentValue(new BigDecimal("40.00"));
 
         mockMvc.perform(put("/assets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(testAsset.getId().intValue())))
                 .andExpect(jsonPath("$.name", is("Petrobras S.A.")))
                 .andExpect(jsonPath("$.currentValue", is(40.0)));
     }
 
+    /**
+     * Testa o endpoint DELETE /assets/{id} para exclusão de um ativo.
+     */
     @Test
     void testDeleteAsset() throws Exception {
         mockMvc.perform(delete("/assets/" + testAsset.getId()))

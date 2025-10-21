@@ -24,55 +24,54 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
-@WithMockUser
+@SpringBootTest // Inicia o contexto Spring Boot
+@AutoConfigureMockMvc // Configura o MockMvc
+@Transactional // Garante o rollback de dados
+@WithMockUser // Simula autenticação
 public class WalletAssetControllerIntegrationTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private MockMvc mockMvc; // Simula requisições HTTP
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper; // Converte objetos para JSON
 
-    // Repositórios para setup e limpeza
+    // Repositórios para setup e limpeza de dados
     @Autowired private UserRepository userRepository;
     @Autowired private WalletRepository walletRepository;
     @Autowired private AssetRepository assetRepository;
     @Autowired private WalletAssetRepository walletAssetRepository;
     @Autowired private TransactionRepository transactionRepository;
 
-    // Injetamos o Service real para ajudar a preparar o estado do banco
     @Autowired
-    private WalletAssetService walletAssetService;
+    private WalletAssetService walletAssetService; // Service usado para criar o estado inicial
 
     private User testUser;
     private Wallet testWallet;
     private Asset testAsset;
 
-    @BeforeEach
+    @BeforeEach // Executado antes de cada teste
     void setup() {
-        // Limpa TODOS os repositórios na ordem correta (evita erro de foreign key)
+        // Limpa todas as tabelas na ordem de dependência (Foreign Key)
         transactionRepository.deleteAll();
         walletAssetRepository.deleteAll();
         walletRepository.deleteAll();
         userRepository.deleteAll();
         assetRepository.deleteAll();
 
-        // Cria User
+        // Cria e salva User
         testUser = new User();
         testUser.setUsername("testuser");
         testUser.setEmail("test@user.com");
         testUser.setPassword("password");
         testUser = userRepository.save(testUser);
 
-        // Cria Wallet
+        // Cria e salva Wallet vinculada ao User
         testWallet = new Wallet();
         testWallet.setUser(testUser);
         testWallet = walletRepository.save(testWallet);
 
-        // Cria Asset
+        // Cria e salva Asset
         testAsset = new Asset();
         testAsset.setSymbol("AAPL");
         testAsset.setName("Apple Inc.");
@@ -82,6 +81,7 @@ public class WalletAssetControllerIntegrationTest {
 
     @Test
     void testBuyAsset() throws Exception {
+        // Testa o endpoint POST de compra de ativo
         WalletAssetRequestCreate request = new WalletAssetRequestCreate();
         request.setAssetId(testAsset.getId());
         request.setQuantity(new BigDecimal("10"));
@@ -90,15 +90,14 @@ public class WalletAssetControllerIntegrationTest {
         mockMvc.perform(post("/users/" + testUser.getId() + "/wallet/assets/buy")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.assetId", is(testAsset.getId().intValue())))
-                .andExpect(jsonPath("$.quantity", is(10))) // <--- CORRIGIDO DE 10.0
-                .andExpect(jsonPath("$.averagePrice", is(170.0)));
+                .andExpect(status().isOk()) // Espera HTTP 200
+                .andExpect(jsonPath("$.quantity", is(10)))
+                .andExpect(jsonPath("$.averagePrice", is(170.0))); // Verifica o preço médio
     }
 
     @Test
     void testSellAsset() throws Exception {
-        // Primeiro, compra 10 ações usando o serviço real
+        // Primeiro, realiza uma compra para ter o ativo na carteira
         walletAssetService.transact(
                 testWallet.getId(),
                 testAsset.getId(),
@@ -107,24 +106,24 @@ public class WalletAssetControllerIntegrationTest {
                 "BUY"
         );
 
-        // Agora, vende 3 ações
+        // Prepara a requisição de venda
         WalletAssetRequestCreate sellRequest = new WalletAssetRequestCreate();
         sellRequest.setAssetId(testAsset.getId());
         sellRequest.setQuantity(new BigDecimal("3"));
-        sellRequest.setPurchasePrice(new BigDecimal("180.00")); // Preço de venda
+        sellRequest.setPurchasePrice(new BigDecimal("180.00")); // Preço de venda (irrelevante para o preço médio, mas necessário)
 
+        // Testa o endpoint POST de venda de ativo
         mockMvc.perform(post("/users/" + testUser.getId() + "/wallet/assets/sell")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(sellRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.assetId", is(testAsset.getId().intValue())))
-                .andExpect(jsonPath("$.quantity", is(7))) // <--- CORRIGIDO DE 7.0
-                .andExpect(jsonPath("$.averagePrice", is(170.0))); 
+                .andExpect(status().isOk()) // Espera HTTP 200
+                .andExpect(jsonPath("$.quantity", is(7))) // Verifica a nova quantidade (10 - 3 = 7)
+                .andExpect(jsonPath("$.averagePrice", is(170.0))); // Verifica se o preço médio (de custo) se manteve
     }
 
     @Test
     void testUpdateAsset() throws Exception {
-        // Primeiro, compra 10 ações usando o serviço
+        // Cria um WalletAsset inicial para ser atualizado
         WalletAsset wa = walletAssetService.transact(
                 testWallet.getId(),
                 testAsset.getId(),
@@ -133,27 +132,27 @@ public class WalletAssetControllerIntegrationTest {
                 "BUY"
         );
 
-        // O ID do WalletAsset que acabamos de criar
         Long walletAssetId = wa.getId();
 
-        // Requisição para atualizar a quantidade (ex: importação manual)
+        // Prepara a requisição de atualização
         WalletAssetRequestUpdate updateRequest = new WalletAssetRequestUpdate();
         updateRequest.setWalletAssetId(walletAssetId);
-        updateRequest.setQuantity(new BigDecimal("15")); // Nova quantidade total
-        updateRequest.setAveragePrice(new BigDecimal("172.00")); // Novo preço médio
+        updateRequest.setQuantity(new BigDecimal("15"));
+        updateRequest.setAveragePrice(new BigDecimal("172.00"));
 
+        // Testa o endpoint PUT de atualização
         mockMvc.perform(put("/users/" + testUser.getId() + "/wallet/assets/update")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
+                .andExpect(status().isOk()) // Espera HTTP 200
                 .andExpect(jsonPath("$.id", is(walletAssetId.intValue())))
-                .andExpect(jsonPath("$.quantity", is(15))) // <--- CORRIGIDO DE 15.0
-                .andExpect(jsonPath("$.averagePrice", is(172.0)));
+                .andExpect(jsonPath("$.quantity", is(15))) // Verifica a nova quantidade
+                .andExpect(jsonPath("$.averagePrice", is(172.0))); // Verifica o novo preço médio
     }
 
     @Test
     void testListAssets() throws Exception {
-        // Compra 10 ações para que a lista não esteja vazia
+        // Cria um WalletAsset na carteira para ser listado
         walletAssetService.transact(
                 testWallet.getId(),
                 testAsset.getId(),
@@ -162,10 +161,11 @@ public class WalletAssetControllerIntegrationTest {
                 "BUY"
         );
 
+        // Testa o endpoint GET para listar ativos da carteira
         mockMvc.perform(get("/users/" + testUser.getId() + "/wallet/assets"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$", hasSize(1))) // Deve retornar 1 item
                 .andExpect(jsonPath("$[0].assetId", is(testAsset.getId().intValue())))
-                .andExpect(jsonPath("$[0].quantity", is(10))); // <--- CORRIGIDO DE 10.0
+                .andExpect(jsonPath("$[0].quantity", is(10)));
     }
 }

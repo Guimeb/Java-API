@@ -20,22 +20,24 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+// Testes unitários para a lógica de serviço de Usuário (UserServiceImpl)
 class UserServiceImplTest {
 
     @Mock
-    private UserRepository repo;
+    private UserRepository repo; // Simula o repositório de dados
 
     @Mock
-    private WalletService walletService;
+    private WalletService walletService; // Simula o serviço de Carteira (dependência)
 
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder; // Simula o encoder de senha
 
     @InjectMocks
-    private UserServiceImpl service;
+    private UserServiceImpl service; // Classe sendo testada
 
     @BeforeEach
     void setup() {
+        // Inicializa os mocks
         MockitoAnnotations.openMocks(this);
     }
 
@@ -51,6 +53,7 @@ class UserServiceImplTest {
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
 
+        // Simula a codificação da senha e o salvamento no repositório
         when(passwordEncoder.encode("123")).thenReturn("encoded123");
         when(repo.save(any(User.class))).thenReturn(user);
 
@@ -58,7 +61,9 @@ class UserServiceImplTest {
 
         assertNotNull(result);
         assertEquals("guilherme", result.getUsername());
+        // Verifica se o usuário foi salvo
         verify(repo).save(any(User.class));
+        // Verifica se a carteira foi criada após o salvamento
         verify(walletService).createWalletForUser(1L);
     }
 
@@ -75,8 +80,10 @@ class UserServiceImplTest {
         existente.setUsername("antigo");
         existente.setEmail("antigo@example.com");
 
+        // Simula a busca do usuário existente
         when(repo.findById(1L)).thenReturn(Optional.of(existente));
         when(passwordEncoder.encode("novaSenha")).thenReturn("encodedNova");
+        // Simula o salvamento
         when(repo.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         User atualizado = service.update(dto);
@@ -90,8 +97,10 @@ class UserServiceImplTest {
     void deveLancarErroAoAtualizarUsuarioNaoEncontrado() {
         UserRequestUpdate dto = new UserRequestUpdate();
         dto.setId(99L);
+        // Simula que o usuário não existe
         when(repo.findById(99L)).thenReturn(Optional.empty());
 
+        // Verifica a exceção de Recurso Não Encontrado
         assertThrows(ResourceNotFoundException.class, () -> service.update(dto));
     }
 
@@ -103,10 +112,12 @@ class UserServiceImplTest {
         User user = new User();
         user.setId(1L);
 
+        // Simula que o usuário foi encontrado
         when(repo.findById(1L)).thenReturn(Optional.of(user));
 
         service.delete(dto);
 
+        // Verifica se o método de deleção do repositório foi chamado
         verify(repo).delete(user);
     }
 
@@ -115,8 +126,10 @@ class UserServiceImplTest {
         UserResquestDelete dto = new UserResquestDelete();
         dto.setId(42L);
 
+        // Simula que o usuário não foi encontrado
         when(repo.findById(42L)).thenReturn(Optional.empty());
 
+        // Verifica a exceção de Recurso Não Encontrado
         assertThrows(ResourceNotFoundException.class, () -> service.delete(dto));
     }
 
@@ -126,6 +139,7 @@ class UserServiceImplTest {
         user.setId(1L);
         user.setUsername("gui");
 
+        // Simula a busca bem-sucedida por ID
         when(repo.findById(1L)).thenReturn(Optional.of(user));
 
         User resultado = service.findById(1L);
@@ -135,18 +149,22 @@ class UserServiceImplTest {
 
     @Test
     void deveLancarErroAoBuscarUsuarioInexistente() {
+        // Simula a busca sem sucesso
         when(repo.findById(10L)).thenReturn(Optional.empty());
 
+        // Verifica a exceção de Recurso Não Encontrado
         assertThrows(ResourceNotFoundException.class, () -> service.findById(10L));
     }
 
     @Test
     void deveListarTodosUsuarios() {
+        // Simula o retorno de uma lista com 3 usuários
         when(repo.findAll()).thenReturn(List.of(new User(), new User(), new User()));
 
         List<User> lista = service.findAll();
 
         assertEquals(3, lista.size());
+        // Verifica se o método findAll do repositório foi chamado
         verify(repo).findAll();
     }
 }

@@ -18,6 +18,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+// Testes unitários para a lógica de serviço de Carteira (WalletServiceImpl)
 class WalletServiceImplTest {
 
     @Mock
@@ -25,18 +26,20 @@ class WalletServiceImplTest {
     @Mock
     private UserRepository userRepo;
     @Mock
-    private WalletAssetService walletAssetService;
+    private WalletAssetService walletAssetService; // Dependência para operações de ativo
 
     @InjectMocks
-    private WalletServiceImpl service;
+    private WalletServiceImpl service; // Classe sendo testada
 
     private User user;
     private Wallet wallet;
 
     @BeforeEach
     void setup() {
+        // Inicializa os mocks
         MockitoAnnotations.openMocks(this);
 
+        // Define as entidades de teste
         user = new User();
         user.setId(1L);
         user.setUsername("testuser");
@@ -52,6 +55,7 @@ class WalletServiceImplTest {
 
     @Test
     void deveCriarWalletParaUsuarioComSucesso() {
+        // Simula o usuário encontrado e a ausência de carteira existente
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
         when(walletRepo.findByUser(user)).thenReturn(Optional.empty());
         when(walletRepo.save(any(Wallet.class))).thenReturn(wallet);
@@ -65,17 +69,21 @@ class WalletServiceImplTest {
 
     @Test
     void deveLancarErroQuandoUsuarioNaoEncontradoAoCriarWallet() {
+        // Simula usuário não encontrado
         when(userRepo.findById(1L)).thenReturn(Optional.empty());
 
+        // Verifica a exceção
         assertThrows(ResourceNotFoundException.class, () ->
                 service.createWalletForUser(1L));
     }
 
     @Test
     void deveLancarErroQuandoWalletJaExisteParaUsuario() {
+        // Simula usuário encontrado, mas carteira já existe
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
         when(walletRepo.findByUser(user)).thenReturn(Optional.of(wallet));
 
+        // Verifica a exceção
         assertThrows(IllegalStateException.class, () ->
                 service.createWalletForUser(1L));
     }
@@ -86,6 +94,7 @@ class WalletServiceImplTest {
 
     @Test
     void deveBuscarWalletPorUsuarioComSucesso() {
+        // Simula usuário e carteira encontrados
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
         when(walletRepo.findByUser(user)).thenReturn(Optional.of(wallet));
 
@@ -97,17 +106,21 @@ class WalletServiceImplTest {
 
     @Test
     void deveLancarErroQuandoUsuarioNaoEncontradoAoBuscarWallet() {
+        // Simula usuário não encontrado
         when(userRepo.findById(1L)).thenReturn(Optional.empty());
 
+        // Verifica a exceção
         assertThrows(ResourceNotFoundException.class, () ->
                 service.getWalletByUser(1L));
     }
 
     @Test
     void deveLancarErroQuandoWalletNaoEncontradaAoBuscar() {
+        // Simula usuário encontrado, mas carteira não existe
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
         when(walletRepo.findByUser(user)).thenReturn(Optional.empty());
 
+        // Verifica a exceção
         assertThrows(ResourceNotFoundException.class, () ->
                 service.getWalletByUser(1L));
     }
@@ -118,18 +131,22 @@ class WalletServiceImplTest {
 
     @Test
     void deveComprarAtivoComSucesso() {
+        // Simula a carteira encontrada
         when(walletRepo.findById(10L)).thenReturn(Optional.of(wallet));
 
         Wallet resultado = service.buyAsset(10L, 20L, BigDecimal.TEN, BigDecimal.valueOf(5));
 
         assertNotNull(resultado);
+        // Verifica se o método transact do serviço de WalletAsset foi chamado corretamente
         verify(walletAssetService).transact(10L, 20L, BigDecimal.TEN, BigDecimal.valueOf(5), "BUY");
     }
 
     @Test
     void deveLancarErroQuandoWalletNaoEncontradaAoComprar() {
+        // Simula carteira não encontrada
         when(walletRepo.findById(10L)).thenReturn(Optional.empty());
 
+        // Verifica a exceção
         assertThrows(ResourceNotFoundException.class, () ->
                 service.buyAsset(10L, 20L, BigDecimal.ONE, BigDecimal.ONE));
     }
@@ -140,18 +157,22 @@ class WalletServiceImplTest {
 
     @Test
     void deveVenderAtivoComSucesso() {
+        // Simula a carteira encontrada
         when(walletRepo.findById(10L)).thenReturn(Optional.of(wallet));
 
         Wallet resultado = service.sellAsset(10L, 20L, BigDecimal.ONE, BigDecimal.TEN);
 
         assertNotNull(resultado);
+        // Verifica se o método transact do serviço de WalletAsset foi chamado corretamente
         verify(walletAssetService).transact(10L, 20L, BigDecimal.ONE, BigDecimal.TEN, "SELL");
     }
 
     @Test
     void deveLancarErroQuandoWalletNaoEncontradaAoVender() {
+        // Simula carteira não encontrada
         when(walletRepo.findById(10L)).thenReturn(Optional.empty());
 
+        // Verifica a exceção
         assertThrows(ResourceNotFoundException.class, () ->
                 service.sellAsset(10L, 20L, BigDecimal.ONE, BigDecimal.ONE));
     }

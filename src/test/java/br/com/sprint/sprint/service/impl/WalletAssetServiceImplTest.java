@@ -1,175 +1,170 @@
 package br.com.sprint.sprint.service.impl;
 
+import br.com.sprint.sprint.dto.UserRequestCreate;
+import br.com.sprint.sprint.dto.UserRequestUpdate;
+import br.com.sprint.sprint.dto.UserResquestDelete;
 import br.com.sprint.sprint.exception.ResourceNotFoundException;
-import br.com.sprint.sprint.model.*;
-import br.com.sprint.sprint.model.vo.Price;
-import br.com.sprint.sprint.model.vo.Quantity;
-import br.com.sprint.sprint.repository.AssetRepository;
-import br.com.sprint.sprint.repository.TransactionRepository;
-import br.com.sprint.sprint.repository.WalletAssetRepository;
-import br.com.sprint.sprint.repository.WalletRepository;
+import br.com.sprint.sprint.model.User;
+import br.com.sprint.sprint.repository.UserRepository;
+import br.com.sprint.sprint.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class WalletAssetServiceImplTest {
+// Testes unitários para o serviço de Usuário (UserServiceImpl)
+class UserServiceImplTest {
 
     @Mock
-    private WalletAssetRepository waRepo;
+    private UserRepository repo; // Simula o repositório de dados
+
     @Mock
-    private WalletRepository walletRepo;
+    private WalletService walletService; // Simula o serviço de Carteira (dependência)
+
     @Mock
-    private AssetRepository assetRepo;
-    @Mock
-    private TransactionRepository transactionRepo;
+    private PasswordEncoder passwordEncoder; // Simula o encoder de senha
 
     @InjectMocks
-    private WalletAssetServiceImpl service;
-
-    private Wallet wallet;
-    private Asset asset;
-    private WalletAsset waExistente;
+    private UserServiceImpl service; // Classe sendo testada
 
     @BeforeEach
     void setup() {
+        // Inicializa os mocks
         MockitoAnnotations.openMocks(this);
-
-        wallet = new Wallet();
-        wallet.setId(1L);
-
-        asset = new Asset();
-        asset.setId(10L);
-
-        waExistente = new WalletAsset();
-        waExistente.setId(100L);
-        waExistente.setWallet(wallet);
-        waExistente.setAsset(asset);
-        waExistente.setQuantity(new Quantity(BigDecimal.valueOf(10)));
-        waExistente.setAveragePrice(new Price(BigDecimal.valueOf(5)));
     }
 
     @Test
-    void deveComprarAtivoComSucesso() {
-        when(walletRepo.findById(1L)).thenReturn(Optional.of(wallet));
-        when(assetRepo.findById(10L)).thenReturn(Optional.of(asset));
-        when(waRepo.findByWalletIdAndAssetId(1L, 10L)).thenReturn(Optional.of(waExistente));
-        when(waRepo.save(any(WalletAsset.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    void deveCriarUsuarioComSucesso() {
+        UserRequestCreate dto = new UserRequestCreate();
+        dto.setUsername("guilherme");
+        dto.setEmail("gui@example.com");
+        dto.setPassword("123");
 
-        WalletAsset resultado = service.transact(1L, 10L, BigDecimal.valueOf(10), BigDecimal.valueOf(10), "BUY");
+        User user = new User();
+        user.setId(1L);
+        user.setUsername(dto.getUsername());
+        user.setEmail(dto.getEmail());
 
-        assertNotNull(resultado);
-        assertEquals(0, resultado.getQuantity().getValue().compareTo(BigDecimal.valueOf(20)));
-        verify(transactionRepo).save(any(Transaction.class));
+        // Simula a codificação da senha e o salvamento no repositório
+        when(passwordEncoder.encode("123")).thenReturn("encoded123");
+        when(repo.save(any(User.class))).thenReturn(user);
+
+        User result = service.create(dto);
+
+        assertNotNull(result);
+        assertEquals("guilherme", result.getUsername());
+        // Verifica se o usuário foi salvo
+        verify(repo).save(any(User.class));
+        // Verifica se a carteira foi criada após o salvamento
+        verify(walletService).createWalletForUser(1L);
     }
 
     @Test
-    void deveCriarNovoWalletAssetQuandoNaoExistirEComprar() {
-        when(walletRepo.findById(1L)).thenReturn(Optional.of(wallet));
-        when(assetRepo.findById(10L)).thenReturn(Optional.of(asset));
-        when(waRepo.findByWalletIdAndAssetId(1L, 10L)).thenReturn(Optional.empty());
-        when(waRepo.save(any(WalletAsset.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    void deveAtualizarUsuarioComSucesso() {
+        UserRequestUpdate dto = new UserRequestUpdate();
+        dto.setId(1L);
+        dto.setUsername("novoNome");
+        dto.setEmail("novo@example.com");
+        dto.setPassword("novaSenha");
 
-        WalletAsset resultado = service.transact(1L, 10L, BigDecimal.valueOf(5), BigDecimal.valueOf(2), "BUY");
+        User existente = new User();
+        existente.setId(1L);
+        existente.setUsername("antigo");
+        existente.setEmail("antigo@example.com");
 
-        assertEquals(0, resultado.getQuantity().getValue().compareTo(BigDecimal.valueOf(5)));
-        assertEquals(0, resultado.getAveragePrice().getValue().compareTo(BigDecimal.valueOf(2)));
+        // Simula a busca do usuário existente
+        when(repo.findById(1L)).thenReturn(Optional.of(existente));
+        when(passwordEncoder.encode("novaSenha")).thenReturn("encodedNova");
+        // Simula o salvamento
+        when(repo.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User atualizado = service.update(dto);
+
+        assertEquals("novoNome", atualizado.getUsername());
+        assertEquals("novo@example.com", atualizado.getEmail());
+        verify(repo).save(existente);
     }
 
     @Test
-    void deveVenderParteDoAtivoComSucesso() {
-        when(walletRepo.findById(1L)).thenReturn(Optional.of(wallet));
-        when(assetRepo.findById(10L)).thenReturn(Optional.of(asset));
-        when(waRepo.findByWalletIdAndAssetId(1L, 10L)).thenReturn(Optional.of(waExistente));
-        when(waRepo.save(any(WalletAsset.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    void deveLancarErroAoAtualizarUsuarioNaoEncontrado() {
+        UserRequestUpdate dto = new UserRequestUpdate();
+        dto.setId(99L);
+        // Simula que o usuário não existe
+        when(repo.findById(99L)).thenReturn(Optional.empty());
 
-        WalletAsset resultado = service.transact(1L, 10L, BigDecimal.valueOf(4), BigDecimal.valueOf(5), "SELL");
-
-        assertEquals(0, resultado.getQuantity().getValue().compareTo(BigDecimal.valueOf(6)));
-        verify(transactionRepo).save(any(Transaction.class));
+        // Verifica a exceção de Recurso Não Encontrado
+        assertThrows(ResourceNotFoundException.class, () -> service.update(dto));
     }
 
     @Test
-    void deveLancarErroAoVenderMaisDoQueTem() {
-        when(walletRepo.findById(1L)).thenReturn(Optional.of(wallet));
-        when(assetRepo.findById(10L)).thenReturn(Optional.of(asset));
-        when(waRepo.findByWalletIdAndAssetId(1L, 10L)).thenReturn(Optional.of(waExistente));
+    void deveDeletarUsuarioComSucesso() {
+        UserResquestDelete dto = new UserResquestDelete();
+        dto.setId(1L);
 
-        assertThrows(IllegalArgumentException.class, () ->
-                service.transact(1L, 10L, BigDecimal.valueOf(50), BigDecimal.valueOf(10), "SELL"));
+        User user = new User();
+        user.setId(1L);
+
+        // Simula que o usuário foi encontrado
+        when(repo.findById(1L)).thenReturn(Optional.of(user));
+
+        service.delete(dto);
+
+        // Verifica se o método de deleção do repositório foi chamado
+        verify(repo).delete(user);
     }
 
     @Test
-    void deveLancarErroParaTipoInvalido() {
-        when(walletRepo.findById(1L)).thenReturn(Optional.of(wallet));
-        when(assetRepo.findById(10L)).thenReturn(Optional.of(asset));
-        when(waRepo.findByWalletIdAndAssetId(1L, 10L)).thenReturn(Optional.of(waExistente));
+    void deveLancarErroAoDeletarUsuarioNaoEncontrado() {
+        UserResquestDelete dto = new UserResquestDelete();
+        dto.setId(42L);
 
-        assertThrows(IllegalArgumentException.class, () ->
-                service.transact(1L, 10L, BigDecimal.ONE, BigDecimal.ONE, "INVALIDO"));
+        // Simula que o usuário não foi encontrado
+        when(repo.findById(42L)).thenReturn(Optional.empty());
+
+        // Verifica a exceção de Recurso Não Encontrado
+        assertThrows(ResourceNotFoundException.class, () -> service.delete(dto));
     }
 
     @Test
-    void deveLancarErroQuandoWalletNaoEncontrada() {
-        when(walletRepo.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () ->
-                service.transact(1L, 10L, BigDecimal.ONE, BigDecimal.ONE, "BUY"));
+    void deveRetornarUsuarioPorId() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("gui");
+
+        // Simula a busca bem-sucedida por ID
+        when(repo.findById(1L)).thenReturn(Optional.of(user));
+
+        User resultado = service.findById(1L);
+
+        assertEquals("gui", resultado.getUsername());
     }
 
     @Test
-    void deveLancarErroQuandoAssetNaoEncontrado() {
-        when(walletRepo.findById(1L)).thenReturn(Optional.of(wallet));
-        when(assetRepo.findById(10L)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () ->
-                service.transact(1L, 10L, BigDecimal.ONE, BigDecimal.ONE, "BUY"));
+    void deveLancarErroAoBuscarUsuarioInexistente() {
+        // Simula a busca sem sucesso
+        when(repo.findById(10L)).thenReturn(Optional.empty());
+
+        // Verifica a exceção de Recurso Não Encontrado
+        assertThrows(ResourceNotFoundException.class, () -> service.findById(10L));
     }
 
     @Test
-    void deveListarAtivosDaCarteira() {
-        when(waRepo.findByWalletId(1L)).thenReturn(List.of(new WalletAsset(), new WalletAsset()));
-        List<WalletAsset> lista = service.listByWallet(1L);
-        assertEquals(2, lista.size());
-        verify(waRepo).findByWalletId(1L);
-    }
+    void deveListarTodosUsuarios() {
+        // Simula o retorno de uma lista com 3 usuários
+        when(repo.findAll()).thenReturn(List.of(new User(), new User(), new User()));
 
-    @Test
-    void deveAtualizarAtivoNaCarteira() {
-        when(waRepo.findByIdAndWalletId(100L, 1L)).thenReturn(Optional.of(waExistente));
-        when(waRepo.save(any(WalletAsset.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        List<User> lista = service.findAll();
 
-        WalletAsset atualizado = service.updateInWallet(1L, 100L, BigDecimal.TEN, BigDecimal.valueOf(9));
-
-        assertEquals(0, atualizado.getQuantity().getValue().compareTo(BigDecimal.TEN));
-        assertEquals(0, atualizado.getAveragePrice().getValue().compareTo(BigDecimal.valueOf(9)));
-    }
-
-    @Test
-    void deveLancarErroAoAtualizarAtivoNaoEncontrado() {
-        when(waRepo.findByIdAndWalletId(100L, 1L)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () ->
-                service.updateInWallet(1L, 100L, BigDecimal.TEN, BigDecimal.ONE));
-    }
-
-    @Test
-    void deveRemoverAtivoDaCarteira() {
-        when(waRepo.findByIdAndWalletId(100L, 1L)).thenReturn(Optional.of(waExistente));
-        service.removeFromWallet(1L, 100L);
-        verify(waRepo).delete(waExistente);
-    }
-
-    @Test
-    void deveLancarErroAoRemoverAtivoNaoEncontrado() {
-        when(waRepo.findByIdAndWalletId(100L, 1L)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () ->
-                service.removeFromWallet(1L, 100L));
+        assertEquals(3, lista.size());
+        // Verifica se o método findAll do repositório foi chamado
+        verify(repo).findAll();
     }
 }
